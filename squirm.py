@@ -38,30 +38,29 @@ def main():
         # for lines in task_list.read().split("\n")[::2]:
         for lines in task_list.read().splitlines():
             curr_line = lines.split()
-            for curr_word in curr_line:
-                name = str(curr_line[0])
-                time_est = str(curr_line[1])
-                job_req = str(curr_line[2:])
-                print(
-                    "Name:", name, "Est. Time", time_est, "Dependencies", str(job_req)
-                )
-                ## reorganize jobs based on dependencies
-
-                ## run jobs if user committed
-                retval = validate_job(name)
-                schedule.every(1).seconds.do(announce_job)
-                try:
-                    committed = str(sys.argv[2])
-                except IndexError:
-                    committed = 0
-                    pass
-                if committed == "--commit":
-                    if retval != 0:
-                        count += 1
-                        schedule.every(1).seconds.do(announce_job, run_threaded)
-                    while True:
-                        schedule.run_pending()
-                        time.sleep(1)
+#            for curr_word in curr_line:
+            name = str(curr_line[0])
+            time_est = str(curr_line[1])
+            job_req = str(curr_line[2:])
+            print(
+               "Name:", name, "Est. Time", time_est, "Dependencies", str(job_req)
+            )
+            ## reorganize jobs based on dependencies
+            ## run jobs if user committed
+            retval = validate_job(name)
+            schedule.every(1).seconds.do(announce_job)
+            try:
+               committed = str(sys.argv[2])
+            except IndexError:
+                committed = 0
+                pass
+            if committed == "--commit":
+                if retval != 0:
+                   count += 1
+                   schedule.every(1).seconds.do(announce_job, run_threaded)
+                while True:
+                   schedule.run_pending()
+                   time.sleep(1)
 
 
 if __name__ == "__main__":
