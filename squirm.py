@@ -3,7 +3,7 @@ import threading
 import schedule
 import time
 import subprocess
-
+from pathlib import Path
 
 ## execute jobs
 def run_threaded(job_func):
@@ -11,21 +11,15 @@ def run_threaded(job_func):
     job_thread.start()
 
 
-## increase verbosity
-def announce_job(j):
-    print("Starting", {j}, "running on thread %s" % threading.current_thread())
-
-
 ## confirm file exists and is pythonic
-def validate_job(*jb):
+def validate_job(job):
     try:
         result = subprocess.run(
-            ["black", "--check", "-q", str(jb), "2>/dev/null"],
+            ["black", "--check", "-q", job],
             capture_output=True,
-            shell=True,
             text=True,
         )
-        return result
+        return result.returncode
     except subprocess.CalledProcessError as blkexc:
         return blkexc.returncode
 
@@ -38,29 +32,41 @@ def main():
         # for lines in task_list.read().split("\n")[::2]:
         for lines in task_list.read().splitlines():
             curr_line = lines.split()
-#            for curr_word in curr_line:
             name = str(curr_line[0])
             time_est = str(curr_line[1])
             job_req = str(curr_line[2:])
-            print(
-               "Name:", name, "Est. Time", time_est, "Dependencies", str(job_req)
-            )
-            ## reorganize jobs based on dependencies
-            ## run jobs if user committed
+            wall_clock = 0
+            count += 1
             retval = validate_job(name)
-            schedule.every(1).seconds.do(announce_job)
+#            schedule.every(1).seconds.do(announce_job(name))
+#           ## reorganize jobs based on dependencies
             try:
                committed = str(sys.argv[2])
             except IndexError:
                 committed = 0
                 pass
+            ## run jobs if user committed
             if committed == "--commit":
-                if retval != 0:
-                   count += 1
-                   schedule.every(1).seconds.do(announce_job, run_threaded)
-                while True:
-                   schedule.run_pending()
-                   time.sleep(1)
+                if retval == 0:
+                   print("--commit flag caught, I would run this validated task list, as listed:")
+                   schedule.every(1).seconds.do(run_threaded(name))
+                   print("Starting", {j}, "running on thread %s" % threading.current_thread())
+                   wall_time = '-' 
+                   print( "Order", count, "Task Name:", name, "Est. Time", time_est, "Wall Time", wall_time, "Dependencies", str(job_req))
+                elif retval != 0:
+                    print("Task", name, "NOT VALID and therefore will not be submitted. Received Return Code:", retval)
+            else:
+                print("DRY RUN")
+                wall_time = '-' 
+                if retval == 0:
+                    print("TASK IS VALID:")
+                    print( "Order", count, "Task Name:", name, "Est. Time", time_est, "Wall Time", wall_time, "Dependencies", str(job_req))
+                elif retval != 0:
+                    print("TASK IS NOT VALID:")
+                    print( "Order", count, "Task Name:", name, "Est. Time", time_est, "Wall Time", wall_time, "Dependencies", str(job_req))
+#            while True:
+#                schedule.run_pending()
+#                time.sleep(1)
 
 
 if __name__ == "__main__":
