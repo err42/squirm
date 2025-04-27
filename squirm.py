@@ -3,12 +3,17 @@ import threading
 import schedule
 import time
 import subprocess
-from pathlib import Path
+from functools import partial
+
 
 ## execute jobs
 def run_threaded(job_func):
     job_thread = threading.Thread(target=job_func)
+    start = datetime.datetime.now()
     job_thread.start()
+    job_thread.join()
+    end = datetime.datetime.now()
+    return end - start
 
 
 ## confirm file exists and is pythonic
@@ -29,44 +34,109 @@ def main():
     count = 0
     inputfile = sys.argv[1]
     with open(inputfile, "r") as task_list:
-        # for lines in task_list.read().split("\n")[::2]:
         for lines in task_list.read().splitlines():
             curr_line = lines.split()
             name = str(curr_line[0])
-            time_est = str(curr_line[1])
+            time_est = curr_line[1]
             job_req = str(curr_line[2:])
-            wall_clock = 0
+            wall_time = "-"
             count += 1
-            retval = validate_job(name)
-#            schedule.every(1).seconds.do(announce_job(name))
-#           ## reorganize jobs based on dependencies
+            ## throws exception if no deps given, so ignored.
             try:
-               committed = str(sys.argv[2])
+                committed = str(sys.argv[2])
             except IndexError:
                 committed = 0
                 pass
-            ## run jobs if user committed
-            if committed == "--commit":
-                if retval == 0:
-                   print("--commit flag caught, I would run this validated task list, as listed:")
-                   schedule.every(1).seconds.do(run_threaded(name))
-                   print("Starting", {j}, "running on thread %s" % threading.current_thread())
-                   wall_time = '-' 
-                   print( "Order", count, "Task Name:", name, "Est. Time", time_est, "Wall Time", wall_time, "Dependencies", str(job_req))
-                elif retval != 0:
-                    print("Task", name, "NOT VALID and therefore will not be submitted. Received Return Code:", retval)
+
+            ## remove formatting from dep list
+            strippedvals = (
+                job_req.replace("[", "")
+                .replace("]", "")
+                .replace("'", "")
+                .replace(",", "")
+            )
+
+            ## validate tasks, consider depends
+            retval = validate_job(name)
+            if retval == 0:
+                if job_req is not None:
+                    ## check deps validity
+                    for dep in strippedvals.split():
+                        depval = validate_job(dep)
+                        if depval != 0:
+                            print(
+                                "Task",
+                                dep,
+                                "NOT VALID and therefore will not be submitted. Received Return Code:",
+                                depval,
+                            )
+                            isvalid = "DEP. FAIL"
+                            break
+                        else:
+                            isvalid = "PASS"
+                else:
+                    isvalid = "PASS"
+                    print(
+                        "Order",
+                        count,
+                        "Task Name:",
+                        name,
+                        "Is Valid?",
+                        isvalid,
+                        "Est. Time",
+                        time_est,
+                        "Wall Time",
+                        wall_time,
+                        "Dependencies",
+                        str(job_req),
+                    )
+
+                    ## run jobs if user committed
+                    if committed != 0:
+                        print(
+                            "--commit flag caught & task(s) validated. Now running #",
+                            count,
+                            ":",
+                        )
+                        print(
+                            "Starting",
+                            name,
+                            "running on thread %s" % threading.current_thread(),
+                        )
+                        schedule.every(1).seconds.do(partial(run_threaded, name))
+                        print(
+                            "Order",
+                            count,
+                            "Task Name:",
+                            name,
+                            "Is Valid?",
+                            isvalid,
+                            "Est. Time",
+                            time_est,
+                            "Wall Time",
+                            wall_time,
+                            "Dependencies",
+                            str(job_req),
+                        )
+
             else:
-                print("DRY RUN")
-                wall_time = '-' 
-                if retval == 0:
-                    print("TASK IS VALID:")
-                    print( "Order", count, "Task Name:", name, "Est. Time", time_est, "Wall Time", wall_time, "Dependencies", str(job_req))
-                elif retval != 0:
-                    print("TASK IS NOT VALID:")
-                    print( "Order", count, "Task Name:", name, "Est. Time", time_est, "Wall Time", wall_time, "Dependencies", str(job_req))
-#            while True:
-#                schedule.run_pending()
-#                time.sleep(1)
+                isvalid = "PRI. FAIL"
+                print(
+                    "Order",
+                    count,
+                    "Task Name:",
+                    name,
+                    "Is Valid?",
+                    isvalid,
+                    "Est. Time",
+                    time_est,
+                    "Wall Time",
+                    wall_time,
+                    "Dependencies",
+                    str(job_req),
+                )
+
+    schedule.run_pending()
 
 
 if __name__ == "__main__":

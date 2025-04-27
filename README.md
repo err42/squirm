@@ -2,30 +2,21 @@
 basic task scheduler built initially on Python 3.11.2
 
 Usage:
-    squirm.py [options] ... [ --task-name <optional_task_name> | --run-task <task_name> | --when-to-run  | --depends-on <task_name> | --commit ] ...
+    squirm.py [ <task_list.txt> [--commit] ]
 
     NOTE: Squirm always defaults to 'dry run' and produces a report of tasks collected and their validation status (should it run?). 
           You MUST pass the '--commit' flag in order to make changes to the system.
 
-    NOTE: Squirm assumes order to be FIFO but does proiritize dependencies over otherwise scheduled tasks.
+    NOTE: Squirm assumes order to be FIFO but does handle priorities in dependencies.
 
 
 EXAMPLES:
 INPUT
 
 
-                squirm --run-task /home/testuser/solo_task.py
-                
+(dry-run)       squirm task_list.txt
 
-(dry-run)       squirm --task-name "first_task" --run-task "first_task.py" 
-
-
-                squirm --task-name "primary_task" --run-task "secondary_task.py" --depends-on "first_task" --commit
-
-
-                squirm --task-name "final_task" --run-task "last_task.py" --depends-on "another_task" --commit
-
-
+                squirm task_list.txt --commit
 
 OUTPUT
 
