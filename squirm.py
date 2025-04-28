@@ -37,7 +37,7 @@ def run_threaded(job_func):
     job_thread.join()  # Wait for the thread to finish
     end_time = time.time()
     diffr = end_time - start_time
-    logging.info("run_threaded ran")
+    logging.info("run_threaded ran in %s seconds" % diffr)
     print(diffr)
 
 def run_regular(dep_func):
