@@ -28,13 +28,15 @@ def run_threaded(job_func):
     job_path = Path(job_func)
     print(
          "Starting",
-         job_func,
+         job_path,
          "running on thread %s" % threading.current_thread(),
      )
     job_thread = threading.Thread(target=job_path)
+#    job_thread = threading.Thread(target=job_func)
+####    job_thread = subprocess.run(['python3', job_path])
     start_time = time.time()
-    job_thread.start()
-    job_thread.join()  # Wait for the thread to finish
+#    job_thread.start()
+#    job_thread.join()  # Wait for the thread to finish
     end_time = time.time()
     diffr = end_time - start_time
     logging.info("run_threaded ran in %s seconds" % diffr)
@@ -48,9 +50,13 @@ def run_regular(dep_func):
          dep_path,
          "running on thread %s" % threading.current_thread(),
      )
+    start_time = time.time()
     process = subprocess.Popen(dep_path, shell=False, stdout=subprocess.PIPE)
+    end_time = time.time()
+    diffr = end_time - start_time
     process.wait()
-    logging.info("run_regular ran")
+    logging.info("run_regular ran in %s seconds" % diffr)
+    print(diffr)
 
 ## confirm file exists and is pythonic
 def validate_job(job):
@@ -98,7 +104,7 @@ def main():
             if retval == 0:
                 isvalid = "YES"
                 if str(job_req) == "[]":
-                    job_req = '-'
+                    job_req = None
                 print(
                      "Order",
                      count,
@@ -113,7 +119,26 @@ def main():
                      "Dependencies",
                      str(job_req),
                  )
+                ## run if no job depends
+                if committed != 0:
+                     print(
+                          "--commit flag caught & task validated. Now running independent (parallel) task",
+                          name,
+                          ":",
+                      )
+                     run_threaded(name)
+
+                    
                 if job_req is not None:
+                    if committed != 0:
+                        ## run primary task outside of dep loop
+                        print(
+                             "--commit flag caught & task(s) validated. Now running dependent tasks",
+                             name,
+                             ":",
+                         )
+                        run_regular(name)
+
                     ## check deps validity
                     for dep in strippedvals.split():
                         depval = validate_job(dep)
@@ -130,12 +155,6 @@ def main():
                         else:
                             isvalid = "YES"
                             if committed != 0:
-                                print(
-                                     "--commit flag caught & task(s) validated. Now running dependent tasks",
-                                     name,
-                                     ":",
-                                 )
-                                run_regular(name)
                                 print(
                                      "--commit flag caught & task(s) validated. Now running dependent tasks",
                                      dep.split(),
@@ -158,23 +177,24 @@ def main():
                                     "Wall.Time",
                                     wall_time,
                                 )
-                else:
-                    isvalid = "YES"
-                    count += 1
-                    print(
-                        "Order",
-                        count,
-                        "Task Name:",
-                        name,
-                        "Is Valid?",
-                        isvalid,
-                        "Est.Time",
-                        time_est,
-                        "Wall.Time",
-                        wall_time,
-                        "Dependencies",
-                        str(job_req),
-                    )
+#                else:
+#                    isvalid = "YES"
+#                    count += 1
+#                    print(
+#                        "Order",
+#                        count,
+#                        "Task Name:",
+#                        name,
+#                        "Is Valid?",
+#                        isvalid,
+#                        "Est.Time",
+#                        time_est,
+#                        "Wall.Time",
+#                        wall_time,
+#                        "Dependencies",
+#                        str(job_req),
+#                    )
+
 
 
             else:
