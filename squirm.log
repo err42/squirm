@@ -1,1 +1,6 @@
-
+07:35:55 INFO first.py ran in 2.384185791015625e-07 seconds so difference in time was 9.999999761581421 seconds
+07:36:00 INFO second.py ran in 5.037276029586792 seconds so difference in time was 14.962723970413208 seconds
+07:36:05 INFO third.py ran in 5.009338140487671 seconds so difference in time was 14.990661859512329 seconds
+07:36:10 INFO fourth.py ran in 5.01104736328125 seconds so difference in time was 24.98895263671875 seconds
+07:36:16 INFO fifth.py ran in 5.009309768676758 seconds so difference in time was 24.990690231323242 seconds
+07:36:21 INFO sixth.py ran in 5.010116815567017 seconds so difference in time was 24.989883184432983 seconds

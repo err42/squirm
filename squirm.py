@@ -23,44 +23,55 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 
+
 ## execute jobs
 def run_threaded(job_func, time_predict):
     job_path = Path(job_func)
     print(
-         "Starting",
-         job_path,
-         "running on thread %s" % threading.current_thread(),
-     )
+        "Starting",
+        job_path,
+        "running on thread %s" % threading.current_thread(),
+    )
     job_thread = threading.Thread(target=job_path)
-#    job_thread = threading.Thread(target=job_func)
-####    job_thread = subprocess.run(['python3', job_path])
+    #    job_thread = threading.Thread(target=job_func)
+    ####    job_thread = subprocess.run(['python3', job_path])
     start_time = time.time()
-#    job_thread.start()
-#    job_thread.join()  # Wait for the thread to finish
+    #    job_thread.start()
+    #    job_thread.join()  # Wait for the thread to finish
     end_time = time.time()
     diffr = end_time - start_time
     result = time_predict - diffr
-    msg = "%s ran in %s seconds so difference in time was %s seconds" % (job_func, diffr, result)
+    msg = "%s ran in %s seconds so difference in time was %s seconds" % (
+        job_func,
+        diffr,
+        result,
+    )
     logging.info(msg)
     print(msg)
+
 
 def run_regular(dep_func, time_predict):
     tmp_path = str(pwd) + "/" + str(dep_func)
     dep_path = Path(tmp_path)
     print(
-         "Starting",
-         dep_path,
-         "running on thread %s" % threading.current_thread(),
-     )
+        "Starting",
+        dep_path,
+        "running on thread %s" % threading.current_thread(),
+    )
     start_time = time.time()
     process = subprocess.Popen(dep_path, shell=False, stdout=subprocess.PIPE)
     process.wait()
     end_time = time.time()
     diffr = end_time - start_time
     result = time_predict - diffr
-    msg = "%s ran in %s seconds so difference in time was %s seconds" % (dep_func, diffr, result)
+    msg = "%s ran in %s seconds so difference in time was %s seconds" % (
+        dep_func,
+        diffr,
+        result,
+    )
     logging.info(msg)
     print(msg)
+
 
 ## confirm file exists and is pythonic
 def validate_job(job):
@@ -81,7 +92,7 @@ def validate_job(job):
 def main():
     global count
     inputfile = sys.argv[1]
-    wall_time = '-'
+    wall_time = "-"
     with open(inputfile, "r") as task_list:
         for lines in task_list.read().splitlines():
             curr_line = lines.split()
@@ -108,39 +119,38 @@ def main():
             if retval == 0:
                 isvalid = "YES"
                 print(
-                     "Order",
-                     count,
-                     "Task Name:",
-                     name,
-                     "Is Valid?",
-                     isvalid,
-                     "Est.Time",
-                     time_est,
-                     "Wall.Time",
-                     wall_time,
-                     "Dependencies",
-                     str(job_req),
-                 )
+                    "Order",
+                    count,
+                    "Task Name:",
+                    name,
+                    "Is Valid?",
+                    isvalid,
+                    "Est.Time",
+                    time_est,
+                    "Wall.Time",
+                    wall_time,
+                    "Dependencies",
+                    str(job_req),
+                )
                 ## run if no job depends
                 if committed != 0:
                     if str(job_req) == "[]":
                         job_req = None
                         print(
-                             "--commit flag caught & task validated. Now running independent (parallel) task",
-                             name,
-                             ":",
-                         )
+                            "--commit flag caught & task validated. Now running independent (parallel) task",
+                            name,
+                            ":",
+                        )
                         run_threaded(name, float(time_est))
 
-                    
                 if job_req is not None:
                     if committed != 0:
                         ## run primary task outside of dep loop
                         print(
-                             "--commit flag caught & task(s) validated. Now running dependent tasks",
-                             name,
-                             ":",
-                         )
+                            "--commit flag caught & task(s) validated. Now running dependent tasks",
+                            name,
+                            ":",
+                        )
                         run_regular(name, float(time_est))
 
                     ## check deps validity
@@ -160,14 +170,12 @@ def main():
                             isvalid = "YES"
                             if committed != 0:
                                 print(
-                                     "--commit flag caught & task(s) validated. Now running dependent tasks",
-                                     dep.split(),
-                                     ":",
-                                 )
+                                    "--commit flag caught & task(s) validated. Now running dependent tasks",
+                                    dep.split(),
+                                    ":",
+                                )
                                 run_regular(dep, float(time_est))
 
-
-                               
                             else:
                                 print(
                                     "Order",
@@ -181,25 +189,6 @@ def main():
                                     "Wall.Time",
                                     wall_time,
                                 )
-#                else:
-#                    isvalid = "YES"
-#                    count += 1
-#                    print(
-#                        "Order",
-#                        count,
-#                        "Task Name:",
-#                        name,
-#                        "Is Valid?",
-#                        isvalid,
-#                        "Est.Time",
-#                        time_est,
-#                        "Wall.Time",
-#                        wall_time,
-#                        "Dependencies",
-#                        str(job_req),
-#                    )
-
-
 
             else:
                 isvalid = "PRI.FAIL"
@@ -218,6 +207,7 @@ def main():
                     "Dependencies",
                     str(job_req),
                 )
+
 
 #    schedule.run_pending()
 
