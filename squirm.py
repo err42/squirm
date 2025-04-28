@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 
 ## execute jobs
-def run_threaded(job_func):
+def run_threaded(job_func, time_predict):
     job_path = Path(job_func)
     print(
          "Starting",
@@ -39,10 +39,12 @@ def run_threaded(job_func):
 #    job_thread.join()  # Wait for the thread to finish
     end_time = time.time()
     diffr = end_time - start_time
-    logging.info("run_threaded ran in %s seconds" % diffr)
-    print(diffr)
+    result = time_predict - diffr
+    msg = "%s ran in %s seconds so difference in time was %s seconds" % (job_func, diffr, result)
+    logging.info(msg)
+    print(msg)
 
-def run_regular(dep_func):
+def run_regular(dep_func, time_predict):
     tmp_path = str(pwd) + "/" + str(dep_func)
     dep_path = Path(tmp_path)
     print(
@@ -52,11 +54,13 @@ def run_regular(dep_func):
      )
     start_time = time.time()
     process = subprocess.Popen(dep_path, shell=False, stdout=subprocess.PIPE)
+    process.wait()
     end_time = time.time()
     diffr = end_time - start_time
-    process.wait()
-    logging.info("run_regular ran in %s seconds" % diffr)
-    print(diffr)
+    result = time_predict - diffr
+    msg = "%s ran in %s seconds so difference in time was %s seconds" % (dep_func, diffr, result)
+    logging.info(msg)
+    print(msg)
 
 ## confirm file exists and is pythonic
 def validate_job(job):
@@ -103,8 +107,6 @@ def main():
             retval = validate_job(name)
             if retval == 0:
                 isvalid = "YES"
-                if str(job_req) == "[]":
-                    job_req = None
                 print(
                      "Order",
                      count,
@@ -121,12 +123,14 @@ def main():
                  )
                 ## run if no job depends
                 if committed != 0:
-                     print(
-                          "--commit flag caught & task validated. Now running independent (parallel) task",
-                          name,
-                          ":",
-                      )
-                     run_threaded(name)
+                    if str(job_req) == "[]":
+                        job_req = None
+                        print(
+                             "--commit flag caught & task validated. Now running independent (parallel) task",
+                             name,
+                             ":",
+                         )
+                        run_threaded(name, float(time_est))
 
                     
                 if job_req is not None:
@@ -137,7 +141,7 @@ def main():
                              name,
                              ":",
                          )
-                        run_regular(name)
+                        run_regular(name, float(time_est))
 
                     ## check deps validity
                     for dep in strippedvals.split():
@@ -160,7 +164,7 @@ def main():
                                      dep.split(),
                                      ":",
                                  )
-                                run_regular(dep)
+                                run_regular(dep, float(time_est))
 
 
                                
