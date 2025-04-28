@@ -14,9 +14,9 @@ EXAMPLES:
 INPUT
 
 
-(dry-run)       squirm task_list.txt
+(dry-run)       python3 squirm.py task_list.txt
 
-                squirm task_list.txt --commit
+                python3 squirm.py task_list.txt --commit
 
 
 TASK LIST EXAMPLE CONTENTS:
