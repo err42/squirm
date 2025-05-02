@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-import os
 import sys
 import logging
 import threading
-import schedule
-import datetime
 import time
 import subprocess
-from functools import partial
 from pathlib import Path
 
 ## init globals
@@ -32,10 +28,10 @@ def run_threaded(job_func, time_predict):
         job_path,
         "running on thread %s" % threading.current_thread(),
     )
+    start_time = time.time()
     job_thread = threading.Thread(target=job_path)
     #    job_thread = threading.Thread(target=job_func)
     ####    job_thread = subprocess.run(['python3', job_path])
-    start_time = time.time()
     #    job_thread.start()
     #    job_thread.join()  # Wait for the thread to finish
     end_time = time.time()
